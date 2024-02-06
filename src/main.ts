@@ -1,9 +1,19 @@
 import './style.css'
 import * as THREE from 'three'
+import studio from '@theatre/studio'
+import { getProject , types } from '@theatre/core'
+import projectState from './state.json'
 
 /**
- * Camera
+ * Theatre.js
  */
+
+studio.initialize()
+
+const project = getProject('THREE.js x Theatre.js', { state: projectState })
+
+const sheet = project.sheet('Animated scene')
+
 
 const camera = new THREE.PerspectiveCamera(
   70,
@@ -107,4 +117,25 @@ window.addEventListener(
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   },
   false,
+
+  
 )
+// Create a Theatre.js object with the props you want to
+// animate
+const torusKnotObj = sheet.object('Torus Knot', {
+  // Note that the rotation is in radians
+  // (full rotation: 2 * Math.PI)
+  rotation: types.compound({
+    x: types.number(mesh.rotation.x, { range: [-2, 2] }),
+    y: types.number(mesh.rotation.y, { range: [-2, 2] }),
+    z: types.number(mesh.rotation.z, { range: [-2, 2] }),
+  }),
+})
+torusKnotObj.onValuesChange((values) => {
+  const { x, y, z } = values.rotation
+
+  mesh.rotation.set(x * Math.PI, y * Math.PI, z * Math.PI)
+})
+scene.add(mesh)
+project.ready.then(() => sheet.sequence.play({ iterationCount: Infinity }))
+
